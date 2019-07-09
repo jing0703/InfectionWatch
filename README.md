@@ -8,8 +8,9 @@ The aim of this project is to build a cloud based platform to automatic collect,
 
 # Motivation
 Infectious diseases are associated with substantial morbidity, mortality and cost. Manual identification of infections is costly, time-consuming and diverts staff time from prevention activities. Although next-generation DNA sequencing has demonstrated its ability to identify microbial pathogens where traditional diagnostics have otherwise failed, there are several limitations to use it for infection detection in clinical setting: 
-1. The volume of data that is produced from next-generation sequencing platforms is massive. Data analysis is time-consuming and requires sophisticated bioinformatics systems. 
-2. The lack of computational resources for large dataset storage and management limits capability to analyze and clinically interpret the data.
+1. The volume of data that is produced from next-generation sequencing platforms is massive. 
+2. Data analysis is time-consuming and requires sophisticated bioinformatics systems. 
+3. The lack of computational resources for large dataset storage and management limits capability to analyze and clinically interpret the data.
 
 
 # Tools and technologies used 
@@ -20,7 +21,7 @@ Infectious diseases are associated with substantial morbidity, mortality and cos
 5. Flask 
 6. Tableau
 
-Flow of the data pipeline
+Flow of the data
 ------------------------------------
 
 ![Alt text](pipeline.png?raw=true "Optional Title")
@@ -52,7 +53,7 @@ Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https
 
 #### CLUSTER STRUCTURE:
 
-To reproduce my environment, 11 m4.large AWS EC2 instances are needed:
+To reproduce my environment, 10 m4.large AWS EC2 instances are needed:
 - (4 nodes) Spark Cluster 1 - Batch for DNA sequencing data analysis
 - (4 nodes) Spark Cluster 2 - Batch for medical records data processing
 - Flask Node
@@ -71,8 +72,8 @@ Follow the instruction from [AWS Guide](https://docs.aws.amazon.com/redshift/lat
 Detailed information for creating tables, uploading data, and querying the database in Redshift cluster can not found in 
 
 ##### Install other tools
-Download and install [biopython] (https://biopython.org/wiki/Download) and [sparkhit] (https://rhinempi.github.io/sparkhit/example.html) in all your Spark Cluster nodes for DNA data analysis.
-Download and install [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html) in all your Spark Cluster nodes.
+Download and install [Biopython] (https://biopython.org/wiki/Download) and [Sparkhit] (https://rhinempi.github.io/sparkhit/example.html) in all your Spark Cluster nodes for DNA data analysis.
+Download and install [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html) in all your Spark Cluster nodes.
 
 ##### Configurations
 Configuration settings for Spark tasks and AWS S3 bucket are stored in the respective files in `config/` folder.
