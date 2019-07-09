@@ -44,7 +44,7 @@ Daily reports will be generated from the collected data. A detailed summary of i
 ### Environment Setup
 
 Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus) on your local machine, and clone this repository using
-`git clone https://github.com/jing0703/Infection_Monitoring_Platform_v1.git`.
+`git clone https://github.com/jing0703/InfectionWatch.git`.
 
 > AWS Tip: Add your local IP to your AWS VPC inbound rules
 
