@@ -1,4 +1,7 @@
-#Scripts to create tables and perform functional analysis by AWS Redshift
+-- ------------------------------------------------------------------------------------
+-- A SQL script for create tables in Redshift cluster
+-- Redshift Analytic Functions and Aggregate query are used for data analysis 
+-- ------------------------------------------------------------------------------------
 
 #create table schma with distkey and sortkey
 create table phamacy(
