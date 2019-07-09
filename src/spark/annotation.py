@@ -85,8 +85,8 @@ def data_transformation(sample,index):
     infection_df.write \
                 .format("com.databricks.spark.redshift") \
                 .option("url", "jdbc:redshift://insightdb.cqkz63sxbill.us-east-1.redshift.amazonaws.com:5439/insightdb?user=jing&password=Xj376891") \
-                .option("temporary_aws_access_key_id", "AKIARZVXCV2XU2MP3WBV") \
-                .option("temporary_aws_secret_access_key", "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") \
+                .option("temporary_aws_access_key_id", "XXX") \
+                .option("temporary_aws_secret_access_key", "XXX") \
                 .option('forward_spark_s3_credentials',"true") \
                 .option("dbtable", "infection") \
                 .option("tempdir", "s3n://spark-temp-redshift1/tmp/") \
