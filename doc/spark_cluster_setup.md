@@ -12,7 +12,7 @@ scp -i <path-to-keypair> <path-to-copy-keypair> ec2-user@<IP-control-node>:/home
 
 From control node, clone InfectionWatch github repository and install dependencies:
 ```
-# Clones "HAIs_Monitoring" github repository
+# Clones "InfectionWatch" github repository
 git clone https://github.com/jing0703/InfectionWatch.git
 
 # Updates all Linux and Python dependencies on EC2 AMI 1 instance
