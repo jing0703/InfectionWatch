@@ -5,46 +5,60 @@ Batch processing by Spark to transform raw medical data and save to Redshift
 
 ## REQUIRED MODULES
 import os
-import boto3
+import csv
 from datetime import datetime, date
 from itertools import islice
 from pyspark.conf import SparkConf
 from pyspark import SparkContext
 from pyspark.sql import SparkSession, SQLContext, Row
-from pyspark.sql.functions import col, to_timestamp,row_number
-from pyspark.sql.types import *
+from pyspark.sql.functions import col, to_timestamp, row_number
+import pyspark.sql.types as t
 
-# function to filter out header line and get conetnt from file
+
 def get_content(data):
+  """function to filter out header line and get conetnt from file"""
     return data.zipWithIndex().filter(lambda kv: kv[1] > 2).keys()
+  
 
-# function to calculate age from date of birth   
 def calculate_age(born,admit_date):
+  """function to calculate age from date of birth """
     return admit_date.year - born.year - ((admit_date.month, admit_date.day) < (born.month, born.day))
 
-#function for writing transformed dataframe to Redshift
-def write_table(df,table):
-    return df.write \
-  .format("com.databricks.spark.redshift") \
-  .option("url", "jdbc:redshift://CLUSGER/DB?user=USER&password=XXX") \
-  .option("temporary_aws_access_key_id", "XXX") \
-  .option("temporary_aws_secret_access_key", "XXX") \
-  .option('forward_spark_s3_credentials',"true") \
-  .option("dbtable", table) \
-  .option("tempdir", "s3n://spark-temp-redshift1/tmp/") \
-  .mode("append") \
-  .save() 
 
-# read raw data for pharmacy information as json and transform to dataframe
+def process_row(row):
+  """function to read each row from input csv file"""
+    return csv.reader([row]) 
+
+
+
+def write_table(df,table):
+  """function for writing transformed dataframe to Redshift"""
+    return df.write \
+              .format("com.databricks.spark.redshift") \
+              .option("url", "jdbc:redshift://YOUR_CLUSTER/YOUR_DB?user=USER_NAME&password=XXX") \
+              .option("temporary_aws_access_key_id", os.environ['AWS_ACCESS_KEY']) \
+              .option("temporary_aws_secret_access_key", os.environ['AWS_SECRET_ACCESS']) \
+              .option('forward_spark_s3_credentials',"true") \
+              .option("dbtable", "pharmacy_infor") \
+              .option("tempdir", "s3n://YOUR_TEMP_BUSKET_FOR_REDSHIFT/") \
+              .option("tempformat","CSV GZIP") \
+              .mode("append") \
+              .save()
+
+
 def transform_pharmacy_info():
+  """read raw data for pharmacy information as json and transform to dataframe"""
     columns_to_drop = ['Day Of Service', 'Drug Class','Generic Drug','Route Of Administration','Route Of Administration Title','Therapeutic Category']
     ph_filtered = ph_content.drop(*columns_to_drop)
     ph_filtered.select(to_timestamp(ph['Date Of Service'], 'yyyy-MM-dd HH:mm:ss'))
     ph_df = ph_filtered.select(col("Discharge ID").alias("record_id"), col("Drug Class Title").alias("drug_class"), col("Therapeutic Category Title").alias("therapeutic_category"), col("Generic Drug Title").alias("generic_drug"),col("Adj Pharmacy Charges").alias("adj_pharmacy_charges"),col("Pharmacy Charges").alias("pharmacy_charges"),col("Date Of Service").alias("date_of_service"))
     write_table(ph_df,'pharmacy')
 
-# read raw data for demographic information as csv and transform to dataframe
+
+
+
 def transform_demographic_info():
+  """read raw data for demographic information as csv and transform to dataframe"""
     demographics_info = de_content.repartition(8).map(lambda p: Row(record_id=int(float(p[4])),
                                                                     hospital_city=p[1].replace('"',''),
                                                                     campus_name=p[3].replace('"','').replace('?',''),
@@ -66,39 +80,41 @@ def transform_demographic_info():
                                                                     ICDcode=p[50].strip("''")[1:4],
                                                                     ICDtitle=p[50].strip("''")[8:-1],
                                                                     severity_level=p[61].replace('"',''),
-                                                                    risk_of_mortality=p[63].replace('"','')
-                                                                    ))
-                                                        de_df = sqlContext.createDataFrame(demographics_info)
+                                                                    risk_of_mortality=p[63].replace('"',''),
+                                                                ))
+    de_df = sqlContext.createDataFrame(demographics_info)
     write_table(de_df,'demographics')
 
-# read raw data for billing information as csv and transform to dataframe
+
 def transform_billing_info():
-    billing_info = de_content.repartition(8).map(lambda p: Row(record_id=int(float(p[4])                                        ),billing_no=p[5].strip("''"),
-                                              billed_charges=float(p[75]),
-                                              adj_billed_charges=float(p[76]),
-                                              clinicalc_harges=float(p[77]),
-                                              imaging_Charges=float(p[78]),
-                                              lab_charges=float(p[79]),
-                                              other_charges=float(p[80]),
-                                              pharmacy_charges=float(p[81]),
-                                              supply_charges=float(p[82]),
-                                              adj_clinical_charges=float(p[83]),
-                                              adj_imaging_charges=float(p[84]),
-                                              adj_lab_charges=float(p[85]),
-                                              adj_other_charges=float(p[86]),
-                                              adj_pharmacy_charges=float(p[87]),
-                                              adj_supply_charges=float(p[88])
-                                             ))
+  """read raw data for billing information as csv and transform to dataframe"""
+    billing_info = de_content.repartition(8).map(lambda p: Row(record_id=int(float(p[4])),
+                                                               billing_no=p[5].strip("''"),
+                                                               billed_charges=float(p[75]),
+                                                               adj_billed_charges=float(p[76]),
+                                                               clinicalc_harges=float(p[77]),
+                                                               imaging_Charges=float(p[78]),
+                                                               lab_charges=float(p[79]),
+                                                               other_charges=float(p[80]),
+                                                               pharmacy_charges=float(p[81]),
+                                                               supply_charges=float(p[82]),
+                                                               adj_clinical_charges=float(p[83]),
+                                                               adj_imaging_charges=float(p[84]),
+                                                               adj_lab_charges=float(p[85]),
+                                                               adj_other_charges=float(p[86]),
+                                                               adj_pharmacy_charges=float(p[87]),
+                                                               adj_supply_charges=float(p[88])
+                                                              ))
     billing_df = sqlContext.createDataFrame(billing_info)
-    write_table(billing_df,'billing')
+    write_table(billing_df, 'billing')
 
 
 if __name__ == '__main__':
     ph= SparkSession(sc).read.json("s3a://patient-metadata/pharmacy_info.csv")
     ph_content = get_content(ph)
     de = sc.textFile("s3a://patient-metadata/demographics_info.csv") \
-    .map(lambda line: line.split(";")) \
-    .filter(lambda line: len(line)>1)
+            .map(lambda line: line.split(";")) \
+            .filter(lambda line: len(line)>1)
     de_content = get_content(de)
     transform_pharmacy_info()
     transform_demographic_info()
